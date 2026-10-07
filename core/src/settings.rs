@@ -132,8 +132,7 @@ mod tests {
     fn roundtrip_and_partial_files() {
         let dir = std::env::temp_dir().join(format!("pomo-settings-{}", uuid::Uuid::new_v4()));
         let path = dir.join("settings.toml");
-        let mut s = Settings::default();
-        s.focus_min = 50;
+        let s = Settings { focus_min: 50, ..Settings::default() };
         s.save(&path).unwrap();
         assert_eq!(Settings::load(&path).unwrap(), s);
 

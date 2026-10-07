@@ -79,6 +79,12 @@
   font-size: 0.8em;
   opacity: 0.7;
 }
+/* Same height as a heatmap cell so the weekday labels line up with the rows. */
+.heat-day {
+  font-size: 9px;
+  min-height: 11px;
+  line-height: 1;
+}
 
 /* Statistics */
 .stat-card {

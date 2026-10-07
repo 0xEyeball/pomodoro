@@ -4,7 +4,6 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use gtk::gio;
-use gtk::prelude::*;
 
 /// Calls `on_change(true)` right before the system suspends and `on_change(false)` after it
 /// wakes. The returned handle keeps the subscription alive.

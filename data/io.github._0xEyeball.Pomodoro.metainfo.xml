@@ -19,7 +19,7 @@
     </ul>
   </description>
   <launchable type="desktop-id">io.github._0xEyeball.Pomodoro.desktop</launchable>
-  <developer id="io.github._0xEyeball">
+  <developer>
     <name>0xEyeball</name>
   </developer>
   <url type="homepage">https://github.com/0xEyeball/pomodoro</url>

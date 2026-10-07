@@ -14,6 +14,14 @@ use gtk::{gio, glib};
 use pomodoro_core::APP_ID;
 
 fn main() -> glib::ExitCode {
+    // The UI redraws at most once a second, so GTK's CPU renderer is plenty and keeps idle
+    // memory far lower than the GL/Vulkan renderers (which load the whole GPU driver stack).
+    // An explicit GSK_RENDERER from the environment still wins.
+    if std::env::var_os("GSK_RENDERER").is_none() {
+        // SAFETY: no other threads exist yet.
+        std::env::set_var("GSK_RENDERER", "cairo");
+    }
+
     // Makes the X11 WM_CLASS and Wayland app_id match the .desktop file.
     glib::set_prgname(Some(APP_ID));
     glib::set_application_name("Pomodoro");

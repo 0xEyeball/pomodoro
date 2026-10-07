@@ -55,8 +55,8 @@ impl Totals {
 
 #[derive(Clone, Debug, Default)]
 pub struct Stats {
-    /// Totals per day, split by tag (None = untagged).
-    days: BTreeMap<NaiveDate, HashMap<Option<String>, Totals>>,
+    /// Totals per day, split by tag (None = untagged). Ordered maps keep float sums deterministic.
+    days: BTreeMap<NaiveDate, BTreeMap<Option<String>, Totals>>,
     goals: Vec<GoalEntry>,
 }
 
@@ -151,7 +151,7 @@ impl Stats {
 
     /// Per-tag breakdown for a period, sorted by total pomodoros (largest first).
     pub fn by_tag(&self, from: NaiveDate, to: NaiveDate) -> Vec<(Option<String>, Totals)> {
-        let mut acc: HashMap<Option<String>, Totals> = HashMap::new();
+        let mut acc: BTreeMap<Option<String>, Totals> = BTreeMap::new();
         for per_tag in self.days.range(from..=to).map(|(_, v)| v) {
             for (tag, t) in per_tag {
                 acc.entry(tag.clone()).or_default().add(t);

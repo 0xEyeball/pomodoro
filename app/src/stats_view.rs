@@ -30,8 +30,8 @@ const PERIODS: [(Period, &str); 4] =
 struct Card {
     widget: gtk::Box,
     title: gtk::Label,
-    pomodoros: gtk::Label,
-    sessions: gtk::Label,
+    pomodoros: [gtk::Label; 3],
+    sessions: [gtk::Label; 3],
     focus: gtk::Label,
     prev: Option<gtk::Button>,
     next: Option<gtk::Button>,
@@ -58,17 +58,26 @@ impl Card {
         if let Some(n) = &next {
             header.append(n);
         }
-        let value = || gtk::Label::builder().xalign(0.0).wrap(true).css_classes(["stat-value"]).build();
-        let (pomodoros, sessions, focus) = (value(), value(), value());
-        let grid = gtk::Grid::builder().row_spacing(4).column_spacing(12).build();
-        for (i, (name, v)) in [("Pomodoros", &pomodoros), ("Sessions", &sessions), ("Focus", &focus)]
-            .into_iter()
-            .enumerate()
-        {
-            let l = gtk::Label::builder().label(name).xalign(0.0).css_classes(["dim-label"]).build();
-            grid.attach(&l, 0, i as i32, 1, 1);
-            grid.attach(v, 1, i as i32, 1, 1);
+        // A small table: rows Pomodoros / Sessions / Focus, columns complete / incomplete / total.
+        let value = || gtk::Label::builder().xalign(1.0).css_classes(["stat-value"]).build();
+        let pomodoros = [value(), value(), value()];
+        let sessions = [value(), value(), value()];
+        let focus = gtk::Label::builder().xalign(1.0).css_classes(["stat-value"]).build();
+        let grid = gtk::Grid::builder().row_spacing(4).column_spacing(12).halign(gtk::Align::Center).build();
+        let dim = |text: &str, x: f32, classes: &[&str]| {
+            gtk::Label::builder().label(text).xalign(x).css_classes(classes.iter().map(|c| c.to_string()).collect::<Vec<_>>()).build()
+        };
+        for (col, head) in ["Complete", "Incomplete", "Total"].into_iter().enumerate() {
+            grid.attach(&dim(head, 1.0, &["dim-label", "caption"]), col as i32 + 1, 0, 1, 1);
         }
+        for (row, (name, cells)) in [("Pomodoros", &pomodoros), ("Sessions", &sessions)].into_iter().enumerate() {
+            grid.attach(&dim(name, 0.0, &["dim-label"]), 0, row as i32 + 1, 1, 1);
+            for (col, cell) in cells.iter().enumerate() {
+                grid.attach(cell, col as i32 + 1, row as i32 + 1, 1, 1);
+            }
+        }
+        grid.attach(&dim("Focus", 0.0, &["dim-label"]), 0, 3, 1, 1);
+        grid.attach(&focus, 1, 3, 3, 1);
         let widget = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .spacing(8)
@@ -81,20 +90,15 @@ impl Card {
 
     fn set(&self, title: &str, t: &Totals) {
         self.title.set_label(title);
-        self.pomodoros.set_label(&format!(
-            "{} complete · {} incomplete · {} total",
-            t.pom_completed,
-            t.pom_incomplete,
-            fmt_decimal(t.pom_total)
-        ));
-        self.pomodoros.set_tooltip_text(Some(&format!("{} pomodoros in total", t.pom_total)));
-        self.sessions.set_label(&format!(
-            "{} complete · {} incomplete · {} total",
-            t.ses_completed,
-            t.ses_incomplete,
-            fmt_decimal(t.ses_total)
-        ));
-        self.sessions.set_tooltip_text(Some(&format!("{} sessions in total", t.ses_total)));
+        let fill = |cells: &[gtk::Label; 3], c: u32, i: u32, total: f64, what: &str| {
+            cells[0].set_label(&c.to_string());
+            cells[1].set_label(&i.to_string());
+            cells[2].set_label(&fmt_decimal(total));
+            // Full precision for the curious.
+            cells[2].set_tooltip_text(Some(&format!("{total} {what}")));
+        };
+        fill(&self.pomodoros, t.pom_completed, t.pom_incomplete, t.pom_total, "pomodoros");
+        fill(&self.sessions, t.ses_completed, t.ses_incomplete, t.ses_total, "sessions");
         self.focus.set_label(&fmt_focus(t.focus_sec));
         self.focus.set_tooltip_text(Some(&format!("{:.0} seconds", t.focus_sec)));
     }
@@ -110,9 +114,12 @@ pub struct StatsView {
     years: RefCell<Vec<Option<i32>>>,
     heat_scroll: gtk::ScrolledWindow,
     heat_box: gtk::Box,
+    heat_days: gtk::Box,
     legend: gtk::Box,
     cells: RefCell<HashMap<NaiveDate, gtk::Button>>,
     selected: Cell<NaiveDate>,
+    /// The "today" the view last rendered for, to follow the date across midnight.
+    today: Cell<NaiveDate>,
     month: Cell<(i32, u32)>,
     year: Cell<i32>,
     day_card: Card,
@@ -146,8 +153,14 @@ impl StatsView {
         let heat_box = gtk::Box::builder().css_classes(["heatmap"]).build();
         let heat_scroll = gtk::ScrolledWindow::builder()
             .vscrollbar_policy(gtk::PolicyType::Never)
+            .hexpand(true)
             .child(&heat_box)
             .build();
+        // Weekday labels stay put while the weeks scroll.
+        let heat_days = gtk::Box::new(gtk::Orientation::Vertical, 0);
+        let heat_row = gtk::Box::builder().spacing(4).build();
+        heat_row.append(&heat_days);
+        heat_row.append(&heat_scroll);
         let legend = gtk::Box::builder().spacing(3).halign(gtk::Align::End).css_classes(["heatmap"]).build();
         legend.append(&gtk::Label::builder().label("Less").css_classes(["heat-axis"]).margin_end(3).build());
         for level in 0..=4 {
@@ -199,7 +212,7 @@ impl StatsView {
             .margin_end(12)
             .build();
         content.append(&controls);
-        content.append(&heat_scroll);
+        content.append(&heat_row);
         content.append(&legend);
         content.append(&cards);
         content.append(&streaks);
@@ -220,9 +233,11 @@ impl StatsView {
             years: RefCell::new(vec![None]),
             heat_scroll,
             heat_box,
+            heat_days,
             legend,
             cells: RefCell::default(),
             selected: Cell::new(today),
+            today: Cell::new(today),
             month: Cell::new((today.year(), today.month())),
             year: Cell::new(today.year()),
             day_card,
@@ -303,6 +318,20 @@ impl StatsView {
     /// Reloads records from the database and rebuilds every figure.
     pub fn refresh(&self) {
         self.dirty.set(false);
+        let today = self.ctx.engine.borrow().today_date();
+        let before = self.today.replace(today);
+        if before != today {
+            // Periods still showing the old "today" move along with it.
+            if self.selected.get() == before {
+                self.selected.set(today);
+            }
+            if self.month.get() == (before.year(), before.month()) {
+                self.month.set((today.year(), today.month()));
+            }
+            if self.year.get() == before.year() {
+                self.year.set(today.year());
+            }
+        }
         let stats = Stats::load(self.ctx.engine.borrow().db());
         *self.stats.borrow_mut() = self.ctx.report(stats).unwrap_or_default();
         let tags = self.ctx.all_tags();
@@ -378,7 +407,7 @@ impl StatsView {
         let mut d = grid_start;
         while d <= end {
             let idx = (d - grid_start).num_days() as i32;
-            let (col, row) = (idx / 7 + 1, idx % 7 + 1);
+            let (col, row) = (idx / 7, idx % 7 + 1);
             if d >= start {
                 if d == start || d.day() == 1 {
                     month_starts.push((col, d));
@@ -418,16 +447,23 @@ impl StatsView {
             grid.attach(&l, col, 0, 3, 1);
             last_col = Some(col);
         }
-        for day in [Weekday::Mon, Weekday::Wed, Weekday::Fri] {
-            let row = (day.num_days_from_monday() + 7 - week_start.num_days_from_monday()) % 7 + 1;
+        // Weekday labels in a separate grid with the same row geometry (row 0 = month row).
+        let days = gtk::Grid::builder().row_spacing(3).row_homogeneous(false).build();
+        days.attach(&gtk::Label::builder().label(" ").css_classes(["heat-axis"]).build(), 0, 0, 1, 1);
+        for row in 1..=7 {
+            let weekday = Weekday::try_from(((week_start.num_days_from_monday() + row as u32 - 1) % 7) as u8).unwrap_or(Weekday::Mon);
+            let shown = matches!(weekday, Weekday::Mon | Weekday::Wed | Weekday::Fri);
             let l = gtk::Label::builder()
-                .label(weekday_abbrev(day))
+                .label(if shown { weekday_abbrev(weekday) } else { String::new() })
                 .xalign(0.0)
-                .margin_end(4)
-                .css_classes(["heat-axis"])
+                .css_classes(["heat-axis", "heat-day"])
                 .build();
-            grid.attach(&l, 0, row as i32, 1, 1);
+            days.attach(&l, 0, row, 1, 1);
         }
+        if let Some(old) = self.heat_days.first_child() {
+            self.heat_days.remove(&old);
+        }
+        self.heat_days.append(&days);
 
         while let Some(child) = self.heat_box.first_child() {
             self.heat_box.remove(&child);

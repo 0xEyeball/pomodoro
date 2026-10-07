@@ -76,7 +76,7 @@ fn database_error(app: &adw::Application, paths: Paths, settings: Settings, erro
         win,
         #[weak]
         app,
-        move |_| {
+        move |button| {
             let Some(paths) = paths.borrow_mut().take() else { return };
             let Some(newest) = backups.first() else { return };
             match restore_from_backup(&paths, newest, &settings) {
@@ -86,7 +86,7 @@ fn database_error(app: &adw::Application, paths: Paths, settings: Settings, erro
                 }
                 Err(e) => {
                     status.set_description(Some(&glib::markup_escape_text(&format!("Restore failed: {e}"))));
-                    restore.set_visible(false);
+                    button.set_visible(false);
                 }
             }
         }
@@ -125,6 +125,8 @@ pub fn run_auto_backup(ctx: &Ctx) {
 
 struct WinState {
     timer: Rc<TimerView>,
+    /// Views hold only weak references to themselves in signal handlers; this keeps them alive.
+    _stats: Rc<StatsView>,
     tick: Cell<Option<glib::SourceId>>,
     paused_for_sleep: Cell<bool>,
     last_date: Cell<chrono::NaiveDate>,
@@ -163,7 +165,8 @@ fn build(app: &adw::Application, paths: Paths, engine: Engine, unexpected: bool,
     let banner = adw::Banner::builder().title(CRASH_NOTICE).button_label("_Dismiss").revealed(unexpected).build();
     banner.connect_button_clicked(|b| b.set_revealed(false));
 
-    let toasts = adw::ToastOverlay::builder().child(&stack).build();
+    let toasts = adw::ToastOverlay::new();
+    toasts.set_child(Some(&stack));
     let switcher_bar = adw::ViewSwitcherBar::builder().stack(&stack).build();
     let toolbar = adw::ToolbarView::new();
     toolbar.add_top_bar(&header);
@@ -203,6 +206,7 @@ fn build(app: &adw::Application, paths: Paths, engine: Engine, unexpected: bool,
 
     let state = Rc::new(WinState {
         timer: timer.clone(),
+        _stats: stats.clone(),
         tick: Cell::new(None),
         paused_for_sleep: Cell::new(false),
         last_date: Cell::new(ctx.engine.borrow().today_date()),

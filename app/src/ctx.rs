@@ -54,8 +54,10 @@ pub struct Ctx {
     /// Tag and mode chosen for the next session (before one starts).
     pub next_tag: RefCell<Option<String>>,
     pub next_mode: RefCell<Mode>,
-    listeners: RefCell<Vec<Box<dyn Fn(Change)>>>,
+    listeners: RefCell<Vec<Listener>>,
 }
+
+type Listener = Box<dyn Fn(Change)>;
 
 impl Ctx {
     pub fn new(app: &adw::Application, paths: Paths, engine: Engine) -> Rc<Ctx> {
@@ -226,5 +228,5 @@ pub fn set_tag_dot_color(dot: &gtk::Box, color: Option<TagColor>) {
 /// Gives an icon-only widget a name for screen readers and a tooltip.
 pub fn label_widget(w: &impl IsA<gtk::Widget>, label: &str) {
     w.set_tooltip_text(Some(label));
-    w.update_property(&[gtk::accessible::Property::Label(label)]);
+    w.upcast_ref::<gtk::Widget>().update_property(&[gtk::accessible::Property::Label(label)]);
 }

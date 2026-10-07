@@ -53,7 +53,7 @@ impl TimerView {
         center.append(&phase_label);
         center.append(&digits);
         center.append(&state_label);
-        let ring = TimerRing::new(240, &center);
+        let ring = TimerRing::new(220, &center);
 
         let hint = gtk::Label::builder().css_classes(["dim-label", "caption"]).visible(false).build();
 
@@ -105,15 +105,15 @@ impl TimerView {
         goal_stack.add_named(&goal_ring.widget, Some("ring"));
         goal_stack.add_named(&check, Some("done"));
         let footer = gtk::Label::builder().css_classes(["dim-label"]).wrap(true).build();
-        let footer_box = gtk::Box::builder().spacing(8).halign(gtk::Align::Center).margin_top(12).build();
+        let footer_box = gtk::Box::builder().spacing(8).halign(gtk::Align::Center).margin_top(6).build();
         footer_box.append(&goal_stack);
         footer_box.append(&footer);
 
         let content = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
-            .spacing(18)
-            .margin_top(18)
-            .margin_bottom(18)
+            .spacing(12)
+            .margin_top(12)
+            .margin_bottom(12)
             .margin_start(12)
             .margin_end(12)
             .valign(gtk::Align::Center)

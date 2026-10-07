@@ -12,7 +12,7 @@ fn arc_area(size: i32, line: f64, classes: &[&str], range: Rc<Cell<(f64, f64)>>)
     let area = gtk::DrawingArea::builder()
         .content_width(size)
         .content_height(size)
-        .css_classes(classes.iter().copied())
+        .css_classes(classes.iter().map(|c| c.to_string()).collect::<Vec<_>>())
         .can_target(false)
         .build();
     area.set_draw_func(move |area, cr, w, h| {
