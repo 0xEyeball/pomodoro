@@ -16,7 +16,7 @@ Fully offline; history lives in a local SQLite database. See [SPEC.md](SPEC.md).
 
 ## Build and run
 
-Arch:
+Arch (Rust 1.92 or newer):
 
 ```sh
 sudo pacman -S --needed rust gtk4 libadwaita sqlite gst-plugins-base gst-plugins-good
@@ -29,7 +29,7 @@ Install as a package:
 cd packaging/arch && makepkg -si
 ```
 
-Ubuntu 24.04 / WSL (needs libadwaita ≥ 1.5):
+Ubuntu 24.04 / WSL (needs libadwaita ≥ 1.5 and Rust ≥ 1.92 via rustup):
 
 ```sh
 sudo apt install pkg-config libgtk-4-dev libadwaita-1-dev libsqlite3-dev \

@@ -5,6 +5,8 @@ resolver = "2"
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
+# gtk-rs 0.22 (glib/gtk4/libadwaita bindings) needs 1.92.
+rust-version = "1.92"
 license = "GPL-3.0-or-later"
 
 [profile.release]
