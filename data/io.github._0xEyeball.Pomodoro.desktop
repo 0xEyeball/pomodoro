@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Pomodoro
+GenericName=Focus Timer
+Comment=Focus in pomodoros and track your progress
+Exec=pomodoro
+Icon=io.github._0xEyeball.Pomodoro
+Terminal=false
+Type=Application
+Categories=GTK;GNOME;Utility;
+Keywords=timer;focus;productivity;tomato;study;
+StartupNotify=true
+StartupWMClass=io.github._0xEyeball.Pomodoro

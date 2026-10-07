@@ -1,0 +1,51 @@
+# Builds the package from this source checkout: cd packaging/arch && makepkg -si
+pkgname=pomodoro
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='A small native GNOME Pomodoro timer'
+arch=('x86_64' 'aarch64')
+url='https://github.com/0xEyeball/pomodoro'
+license=('GPL-3.0-or-later')
+depends=('gtk4' 'libadwaita' 'sqlite' 'gst-plugins-base' 'gst-plugins-good' 'glibc' 'gcc-libs')
+makedepends=('cargo')
+checkdepends=('desktop-file-utils' 'appstream')
+options=('!lto')
+
+_appid=io.github._0xEyeball.Pomodoro
+_root="$(realpath "$startdir/../..")"
+
+prepare() {
+  cd "$_root"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+  cd "$_root"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR="$srcdir/target"
+  export POMODORO_SOUND_DIR=/usr/share/pomodoro/sounds
+  cargo build --frozen --release -p pomodoro
+}
+
+check() {
+  cd "$_root"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR="$srcdir/target"
+  cargo test --frozen -p pomodoro-core
+  desktop-file-validate "data/$_appid.desktop"
+  appstreamcli validate --no-net "data/$_appid.metainfo.xml"
+}
+
+package() {
+  cd "$_root"
+  install -Dm755 "$srcdir/target/release/pomodoro" "$pkgdir/usr/bin/pomodoro"
+  install -Dm644 "data/$_appid.desktop" "$pkgdir/usr/share/applications/$_appid.desktop"
+  install -Dm644 "data/$_appid.metainfo.xml" "$pkgdir/usr/share/metainfo/$_appid.metainfo.xml"
+  install -Dm644 "data/icons/hicolor/scalable/apps/$_appid.svg" \
+    "$pkgdir/usr/share/icons/hicolor/scalable/apps/$_appid.svg"
+  install -Dm644 "data/icons/hicolor/symbolic/apps/$_appid-symbolic.svg" \
+    "$pkgdir/usr/share/icons/hicolor/symbolic/apps/$_appid-symbolic.svg"
+  install -Dm644 data/sounds/chime.wav "$pkgdir/usr/share/pomodoro/sounds/chime.wav"
+  install -Dm644 data/sounds/chime-low.wav "$pkgdir/usr/share/pomodoro/sounds/chime-low.wav"
+}

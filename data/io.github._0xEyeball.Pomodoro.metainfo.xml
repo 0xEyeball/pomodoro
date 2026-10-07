@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github._0xEyeball.Pomodoro</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>Pomodoro</name>
+  <summary>Focus in pomodoros and track your progress</summary>
+  <description>
+    <p>
+      A small, native Pomodoro timer: 25-minute focus, 5-minute break, four pomodoros to a
+      session. Tag sessions by subject and follow your progress on a heatmap.
+    </p>
+    <ul>
+      <li>Standard and Blitz sessions</li>
+      <li>Tags, a daily goal and streaks</li>
+      <li>Heatmap and statistics per day, month, year and all time</li>
+      <li>Nothing is lost: progress survives closing the app, crashes and power loss</li>
+      <li>Fully offline, with JSON export and import</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">io.github._0xEyeball.Pomodoro.desktop</launchable>
+  <developer id="io.github._0xEyeball">
+    <name>0xEyeball</name>
+  </developer>
+  <url type="homepage">https://github.com/0xEyeball/pomodoro</url>
+  <url type="bugtracker">https://github.com/0xEyeball/pomodoro/issues</url>
+  <content_rating type="oars-1.1"/>
+  <requires>
+    <display_length compare="ge">300</display_length>
+  </requires>
+  <supports>
+    <control>keyboard</control>
+    <control>pointing</control>
+    <control>touch</control>
+  </supports>
+  <releases>
+    <release version="0.1.0" date="2026-10-07"/>
+  </releases>
+</component>

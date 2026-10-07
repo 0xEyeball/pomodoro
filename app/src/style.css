@@ -1,0 +1,89 @@
+/* Timer */
+.timer-digits {
+  font-size: 52px;
+  font-weight: 300;
+  font-feature-settings: "tnum";
+}
+.compact .timer-digits {
+  font-size: 40px;
+}
+.phase-label {
+  font-weight: bold;
+  opacity: 0.8;
+}
+.ring-track {
+  color: alpha(currentColor, 0.12);
+}
+.ring-progress {
+  color: @accent_bg_color;
+}
+.ring-progress.break {
+  color: @success_bg_color;
+}
+.ring-progress.paused {
+  color: alpha(@accent_bg_color, 0.5);
+}
+.session-dot {
+  color: @accent_bg_color;
+}
+.goal-ring {
+  color: @accent_bg_color;
+}
+.goal-done {
+  color: @success_color;
+}
+
+/* Tags */
+.tag-dot {
+  min-width: 10px;
+  min-height: 10px;
+  border-radius: 999px;
+}
+.tag-dot.no-tag {
+  box-shadow: inset 0 0 0 1px alpha(currentColor, 0.4);
+}
+.tag-dot.large {
+  min-width: 16px;
+  min-height: 16px;
+}
+
+/* Heatmap */
+.heat-cell {
+  min-width: 11px;
+  min-height: 11px;
+  padding: 0;
+  margin: 0;
+  border-radius: 3px;
+  background-color: alpha(currentColor, 0.08);
+  background-image: none;
+  box-shadow: none;
+  border: none;
+}
+.heat-cell:hover {
+  box-shadow: inset 0 0 0 1px alpha(currentColor, 0.5);
+}
+.heat-cell.selected {
+  box-shadow: inset 0 0 0 2px @window_fg_color;
+}
+.heat-cell:focus-visible {
+  outline: 2px solid @accent_color;
+  outline-offset: 1px;
+}
+.heat-legend-cell {
+  min-width: 11px;
+  min-height: 11px;
+  border-radius: 3px;
+  background-color: alpha(currentColor, 0.08);
+}
+.heat-axis {
+  font-size: 0.8em;
+  opacity: 0.7;
+}
+
+/* Statistics */
+.stat-card {
+  padding: 12px;
+}
+.stat-value {
+  font-feature-settings: "tnum";
+}
