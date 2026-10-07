@@ -1,0 +1,16 @@
+[package]
+name = "pomodoro"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "A small native GNOME Pomodoro timer"
+
+[[bin]]
+name = "pomodoro"
+path = "src/main.rs"
+
+[dependencies]
+pomodoro-core = { path = "../core" }
+gtk = { package = "gtk4", version = "0.11", features = ["v4_14"] }
+adw = { package = "libadwaita", version = "0.9", features = ["v1_5"] }
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
